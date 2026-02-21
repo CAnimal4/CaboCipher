@@ -179,6 +179,7 @@ const decOut = $("decOut");
 
 const stCrypto = $("stCrypto");
 const stInfo   = $("stInfo");
+let lastDecodedVer = null;
 
 // Fixed salts (as requested): ' " , ;
 const SALTS = ["'", '"', ",", ";"];
@@ -350,24 +351,25 @@ async function encodeAll(plain, base, ver){
   return "SS3." + ver + "." + bytesToB64Url(iv1) + "." + bytesToB64Url(iv2) + "." + tag + "." + bytesToB64Url(data2);
 }
 
-async function decodeAll(packed, base, ver){
+async function decodeAll(packed, base, selectedVer){
   const s=(packed||"").trim();
   if(!s.startsWith("SS3.")) throw new Error("Bad input");
   const parts=s.split(".");
-  if(parts.length !== 7) throw new Error("Bad input");
-  const inVer = parts[1];
-  if(inVer !== ver) throw new Error("Wrong key set ("+inVer+")");
+  // Expected: SS3.<ver>.<iv1>.<iv2>.<tag>.<data>
+  if(parts.length !== 6) throw new Error("Bad input");
+  const inVer = parts[1]; // version embedded in the text
+  lastDecodedVer = inVer;
   const iv1=b64UrlToBytes(parts[2]);
   const iv2=b64UrlToBytes(parts[3]);
   const tag=parts[4];
   const data2=b64UrlToBytes(parts[5]);
 
   // Check tag (signal only)
-  const tagBytes = await sha256(concatBytes(utf8ToBytes(ver+"|"), iv1, iv2, data2));
+  const tagBytes = await sha256(concatBytes(utf8ToBytes(inVer+"|"), iv1, iv2, data2));
   const expect = bytesToB64Url(tagBytes.slice(0,10));
   if(expect !== tag) throw new Error("Corrupted / modified text");
 
-  const keyHash = await sha256(utf8ToBytes("SS-MASK|" + base + "|" + ver));
+  const keyHash = await sha256(utf8ToBytes("SS-MASK|" + base + "|" + inVer));
 
   const ks2 = await keystream(keyHash, iv2, data2.length, "SS-KS2");
   const data1 = new Uint8Array(data2.length);
@@ -379,11 +381,12 @@ async function decodeAll(packed, base, ver){
 
   const layer1 = bytesToUtf8(data0);
 
-  const wordKeyAZ = await deriveWordKeyAZ(base, ver, 8);
+  const wordKeyAZ = await deriveWordKeyAZ(base, inVer, 8);
   return wordDecodeMessage(layer1, wordKeyAZ);
 }
 
-function hasCrypto(){
+
+function hasCrypto(function hasCrypto(){
   return !!(window.crypto && crypto.subtle && window.TextEncoder && window.TextDecoder);
 }
 
@@ -397,7 +400,7 @@ setCryptoStatus();
 async function refreshEncode(){
   if(!hasCrypto()){ encOut.value=""; return; }
   const base = normBase(baseKeyEl.value);
-  const ver = keyVerEl.value;
+  const ver = keyVerEl.value; // selected key set (used for encoding); decoding reads version from text
   if(!base){ encOut.value=""; return; }
   try{
     const out = await encodeAll(encIn.value || "", base, ver);
@@ -412,14 +415,18 @@ async function refreshEncode(){
 async function refreshDecode(){
   if(!hasCrypto()){ decOut.value=""; return; }
   const base = normBase(baseKeyEl.value);
-  const ver = keyVerEl.value;
+  const ver = keyVerEl.value; // selected key set (used for encoding); decoding reads version from text
   if(!base){ decOut.value=""; return; }
   const inp = decIn.value || "";
   if(!inp.trim()){ decOut.value=""; return; }
   try{
     const out = await decodeAll(inp, base, ver);
     decOut.value = out;
-    stInfo.textContent = "Ready";
+    if (lastDecodedVer && lastDecodedVer !== ver) {
+      stInfo.textContent = "Decoded with " + lastDecodedVer + " (dropdown is " + ver + ")";
+    } else {
+      stInfo.textContent = "Ready";
+    }
   }catch(e){
     decOut.value = "";
     stInfo.textContent = (e && e.message) ? e.message : "Decode error";

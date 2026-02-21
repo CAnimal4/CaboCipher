@@ -186,7 +186,7 @@ const SALTS = ["'", '"', ",", ";"];
 const VOWELS = new Set(["A","E","I","O","U"]);
 
 function normBase(s){
-  return (s||"").toString().trim();
+  return (s||"").toString().trim().toLowerCase();
 }
 
 function normAZ(s){
@@ -332,14 +332,14 @@ async function encodeAll(plain, base, ver){
   const keyHash = await sha256(utf8ToBytes("SS-MASK|" + base + "|" + ver));
   const data0 = utf8ToBytes(layer1);
 
-  // Layer 2 mask
-  const iv1 = crypto.getRandomValues(new Uint8Array(12));
+  // Layer 2 mask (deterministic IV for consistent output)
+  const iv1 = (await sha256(utf8ToBytes("SS-IV1|" + base + "|" + ver + "|" + plain))).slice(0,12);
   const ks1 = await keystream(keyHash, iv1, data0.length, "SS-KS1");
   const data1 = new Uint8Array(data0.length);
   for(let i=0;i<data0.length;i++) data1[i]=data0[i]^ks1[i];
 
-  // Layer 3 mask (second pass)
-  const iv2 = crypto.getRandomValues(new Uint8Array(12));
+  // Layer 3 mask (second pass, deterministic)
+  const iv2 = (await sha256(utf8ToBytes("SS-IV2|" + base + "|" + ver + "|" + plain))).slice(0,12);
   const ks2 = await keystream(keyHash, iv2, data1.length, "SS-KS2");
   const data2 = new Uint8Array(data1.length);
   for(let i=0;i<data1.length;i++) data2[i]=data1[i]^ks2[i];

@@ -6,33 +6,26 @@
   <title>CaboCipher</title>
   <style>
     :root{
-      --bg:#0b0f14;
-      --panel:#0f1620;
-      --text:#e7edf5;
-      --muted:#9fb0c3;
-      --line:#223044;
-      --accent:#6ee7ff;
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-      --radius: 16px;
+      --bg:#0b0f14; --panel:#0f1620; --text:#e7edf5; --muted:#9fb0c3;
+      --line:rgba(255,255,255,.08); --accent:#6ee7ff; --shadow:0 18px 60px rgba(0,0,0,.45);
+      --radius:16px;
     }
     *{box-sizing:border-box}
     body{
-      margin:0;
+      margin:0; min-height:100vh; padding:22px;
+      display:flex; align-items:center; justify-content:center;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(110,231,255,.12), transparent 55%),
-                  radial-gradient(900px 700px at 80% 30%, rgba(167,139,250,.12), transparent 55%),
-                  var(--bg);
       color:var(--text);
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:22px;
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(110,231,255,.12), transparent 55%),
+        radial-gradient(900px 700px at 80% 30%, rgba(167,139,250,.12), transparent 55%),
+        var(--bg);
     }
     .wrap{width:min(980px,100%); display:grid; gap:14px}
     .top{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
-    .title{font-weight:650; letter-spacing:.2px}
+    .title{font-weight:700; letter-spacing:.2px}
     .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    label{color:var(--muted); font-size:12px}
     select, input{
       background: rgba(255,255,255,.04);
       border:1px solid rgba(255,255,255,.10);
@@ -55,7 +48,21 @@
     .pane{display:grid; gap:8px}
     .hdr{display:flex; align-items:center; justify-content:space-between; gap:10px}
     .hdr b{font-size:13px}
-    .hdr .mini{color:var(--muted); font-size:12px}
+    .btns{display:flex; gap:10px; flex-wrap:wrap}
+    button{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:9px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight:650;
+      font-size:13px;
+      transition: transform .06s ease, border-color .15s ease, filter .15s ease;
+      user-select:none;
+    }
+    button:hover{filter:brightness(1.05); border-color: rgba(110,231,255,.35)}
+    button:active{transform: translateY(1px)}
     textarea{
       width:100%;
       min-height:180px;
@@ -71,32 +78,12 @@
     }
     textarea:focus{border-color: rgba(110,231,255,.45)}
     textarea[readonly]{opacity:.95}
-    .btns{display:flex; gap:10px; flex-wrap:wrap}
-    button{
-      border:0;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      color:var(--text);
-      padding:9px 10px;
-      border-radius: 12px;
-      cursor:pointer;
-      font-weight:600;
-      font-size:13px;
-      transition: transform .06s ease, border-color .15s ease, filter .15s ease;
-      user-select:none;
-    }
-    button:hover{filter:brightness(1.05); border-color: rgba(110,231,255,.35)}
-    button:active{transform: translateY(1px)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace}
-    .status{
+    .statusbar{
       padding:10px 14px 14px;
-      color:var(--muted);
-      font-size:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
       border-top:1px solid rgba(255,255,255,.06);
+      display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap;
+      color:var(--muted); font-size:12px;
     }
     .pill{
       padding:6px 10px;
@@ -113,7 +100,7 @@
     <div class="top">
       <div class="title">CaboCipher</div>
       <div class="controls">
-        <label class="mini" style="color:var(--muted); font-size:12px">Key set</label>
+        <label>Key set</label>
         <select id="keyver">
           <option value="v1">v1</option>
           <option value="v2">v2</option>
@@ -121,7 +108,7 @@
           <option value="v4">v4</option>
           <option value="v5">v5</option>
         </select>
-        <label class="mini" style="color:var(--muted); font-size:12px">Base</label>
+        <label>Base</label>
         <input id="basekey" class="mono" type="text" value="sixseven" spellcheck="false" />
       </div>
     </div>
@@ -132,41 +119,43 @@
           <div class="hdr">
             <b>Encode</b>
             <div class="btns">
-              <button id="copyEnc">Copy output</button>
+              <button id="copyEnc">Copy</button>
               <button id="clearEnc">Clear</button>
             </div>
           </div>
           <textarea id="encIn" placeholder="Type here…"></textarea>
-          <div class="hdr">
-            <span class="mini">Output</span>
+          <textarea id="encOut" readonly class="mono" placeholder="Output…"></textarea>
+          <div class="statusbar" style="padding:0 2px 0 2px; border-top:none">
+            <span class="pill" id="encStatus">—</span>
           </div>
-          <textarea id="encOut" readonly class="mono" placeholder="Encoded output…"></textarea>
         </div>
 
         <div class="pane">
           <div class="hdr">
             <b>Decode</b>
             <div class="btns">
-              <button id="copyDec">Copy output</button>
+              <button id="copyDec">Copy</button>
               <button id="clearDec">Clear</button>
             </div>
           </div>
           <textarea id="decIn" class="mono" placeholder="Paste coded text here…"></textarea>
-          <div class="hdr">
-            <span class="mini">Output</span>
+          <textarea id="decOut" readonly placeholder="Output…"></textarea>
+          <div class="statusbar" style="padding:0 2px 0 2px; border-top:none">
+            <span class="pill" id="decStatus">—</span>
           </div>
-          <textarea id="decOut" readonly placeholder="Decoded output…"></textarea>
         </div>
       </div>
 
-      <div class="status">
-        <span id="stCrypto" class="pill">WebCrypto: checking…</span>
-        <span id="stInfo" class="pill mono">Ready</span>
+      <div class="statusbar">
+        <span id="stReady" class="pill ok">Ready</span>
+        <span id="stNote" class="pill">Deterministic output</span>
       </div>
     </div>
   </div>
 
 <script>
+/* CaboCipher — minimal UI, deterministic encode/decode, offline-capable (no WebCrypto dependency). */
+
 const $ = (id)=>document.getElementById(id);
 
 const baseKeyEl = $("basekey");
@@ -177,91 +166,158 @@ const encOut = $("encOut");
 const decIn  = $("decIn");
 const decOut = $("decOut");
 
-const stCrypto = $("stCrypto");
-const stInfo   = $("stInfo");
-let lastDecodedVer = null;
+const encStatus = $("encStatus");
+const decStatus = $("decStatus");
 
-// Fixed salts (as requested): ' " , ;
-const SALTS = ["'", '"', ",", ";"];
+const PREFIX = "CC3";     // output marker
+const SALTS  = ["'", '"', ",", ";"];
 const VOWELS = new Set(["A","E","I","O","U"]);
 
-function normBase(s){
-  return (s||"").toString().trim().toLowerCase();
+// ---- UTF-8 helpers ----
+function utf8ToBytes(str){
+  if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(str);
+  // fallback
+  const s = unescape(encodeURIComponent(str));
+  const out = new Uint8Array(s.length);
+  for (let i=0;i<s.length;i++) out[i]=s.charCodeAt(i);
+  return out;
+}
+function bytesToUtf8(bytes){
+  if (typeof TextDecoder !== "undefined") return new TextDecoder().decode(bytes);
+  let s="";
+  for (let i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+  return decodeURIComponent(escape(s));
 }
 
-function normAZ(s){
-  return (s||"").toString().toUpperCase().replace(/[^A-Z]/g,"");
-}
-
+// ---- Base64url helpers ----
 function bytesToB64Url(bytes){
-  let bin="";
-  for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]);
-  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  if (typeof btoa === "function"){
+    let bin = "";
+    for (let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  // Node / Buffer fallback
+  return Buffer.from(bytes).toString("base64").replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
 function b64UrlToBytes(b64url){
   const b64 = b64url.replace(/-/g,'+').replace(/_/g,'/');
   const pad = b64.length % 4 ? '='.repeat(4 - (b64.length % 4)) : '';
-  const bin = atob(b64 + pad);
-  const out = new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
-  return out;
+  if (typeof atob === "function"){
+    const bin = atob(b64 + pad);
+    const out = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  return new Uint8Array(Buffer.from(b64 + pad, "base64"));
 }
-function utf8ToBytes(s){ return new TextEncoder().encode(s); }
-function bytesToUtf8(b){ return new TextDecoder().decode(b); }
 
-async function sha256(bytes){
-  const d = await crypto.subtle.digest("SHA-256", bytes);
-  return new Uint8Array(d);
-}
 function concatBytes(...arrs){
   const total = arrs.reduce((s,a)=>s+a.length,0);
   const out = new Uint8Array(total);
   let off=0;
-  for(const a of arrs){ out.set(a, off); off += a.length; }
+  for (const a of arrs){ out.set(a, off); off += a.length; }
   return out;
 }
 
-// Derive an A–Z keyword for the word-layer from (base + version) using SHA-256
-async function deriveWordKeyAZ(base, ver, length=8){
-  const seed = utf8ToBytes("SS-WORD|" + base + "|" + ver);
-  const h = await sha256(seed);
+// ---- SHA-256 (pure JS) ----
+const K = new Uint32Array([
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+]);
+function rotr(n,x){ return (x>>>n) | (x<<(32-n)); }
+
+function sha256Bytes(msg){
+  const l = msg.length;
+  const bitLenHi = Math.floor((l * 8) / 0x100000000);
+  const bitLenLo = (l * 8) >>> 0;
+
+  // Pad
+  const withOne = l + 1;
+  const padLen = (withOne % 64 <= 56) ? (56 - (withOne % 64)) : (56 + 64 - (withOne % 64));
+  const totalLen = l + 1 + padLen + 8;
+  const buf = new Uint8Array(totalLen);
+  buf.set(msg, 0);
+  buf[l] = 0x80;
+  // length at end
+  const dv = new DataView(buf.buffer);
+  dv.setUint32(totalLen - 8, bitLenHi);
+  dv.setUint32(totalLen - 4, bitLenLo);
+
+  // Initial hash
+  let h0=0x6a09e667, h1=0xbb67ae85, h2=0x3c6ef372, h3=0xa54ff53a;
+  let h4=0x510e527f, h5=0x9b05688c, h6=0x1f83d9ab, h7=0x5be0cd19;
+
+  const w = new Uint32Array(64);
+
+  for (let i=0;i<buf.length;i+=64){
+    for (let t=0;t<16;t++){
+      const j = i + t*4;
+      w[t] = ((buf[j]<<24) | (buf[j+1]<<16) | (buf[j+2]<<8) | (buf[j+3])) >>> 0;
+    }
+    for (let t=16;t<64;t++){
+      const x = w[t-15], y = w[t-2];
+      const s0 = (rotr(7,x) ^ rotr(18,x) ^ (x>>>3)) >>> 0;
+      const s1 = (rotr(17,y) ^ rotr(19,y) ^ (y>>>10)) >>> 0;
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) >>> 0;
+    }
+
+    let a=h0,b=h1,c=h2,d=h3,e=h4,f=h5,g=h6,h=h7;
+
+    for (let t=0;t<64;t++){
+      const S1 = (rotr(6,e) ^ rotr(11,e) ^ rotr(25,e)) >>> 0;
+      const ch = ((e & f) ^ (~e & g)) >>> 0;
+      const temp1 = (h + S1 + ch + K[t] + w[t]) >>> 0;
+      const S0 = (rotr(2,a) ^ rotr(13,a) ^ rotr(22,a)) >>> 0;
+      const maj = ((a & b) ^ (a & c) ^ (b & c)) >>> 0;
+      const temp2 = (S0 + maj) >>> 0;
+
+      h=g; g=f; f=e; e=(d + temp1) >>> 0;
+      d=c; c=b; b=a; a=(temp1 + temp2) >>> 0;
+    }
+
+    h0=(h0+a)>>>0; h1=(h1+b)>>>0; h2=(h2+c)>>>0; h3=(h3+d)>>>0;
+    h4=(h4+e)>>>0; h5=(h5+f)>>>0; h6=(h6+g)>>>0; h7=(h7+h)>>>0;
+  }
+
+  const out = new Uint8Array(32);
+  const dvOut = new DataView(out.buffer);
+  dvOut.setUint32(0, h0); dvOut.setUint32(4, h1); dvOut.setUint32(8, h2); dvOut.setUint32(12, h3);
+  dvOut.setUint32(16, h4); dvOut.setUint32(20, h5); dvOut.setUint32(24, h6); dvOut.setUint32(28, h7);
+  return out;
+}
+
+// ---- Key derivations ----
+function normBaseKey(s){ return (s||"").toString().trim().toLowerCase(); }
+
+function deriveWordKeyAZ(base, ver, len=8){
+  const h = sha256Bytes(utf8ToBytes("CC-WORD|" + base + "|" + ver));
   let out="";
-  for(let i=0;i<length;i++){
-    out += String.fromCharCode(65 + (h[i] % 26));
-  }
+  for (let i=0;i<len;i++) out += String.fromCharCode(65 + (h[i] % 26));
   return out;
 }
-
-// Keystream blocks: SHA256(keyHash32 || iv || counter32be)
-async function keystream(keyHash32, ivBytes, length, domainTag){
-  const out = new Uint8Array(length);
-  let written=0, counter=0;
-  const domain = utf8ToBytes(domainTag);
-  while(written < length){
-    const ctr = new Uint8Array(4);
-    ctr[0]=(counter>>>24)&255;
-    ctr[1]=(counter>>>16)&255;
-    ctr[2]=(counter>>>8)&255;
-    ctr[3]=(counter)&255;
-    const block = await sha256(concatBytes(domain, keyHash32, ivBytes, ctr));
-    const take = Math.min(block.length, length-written);
-    out.set(block.slice(0,take), written);
-    written += take;
-    counter++;
-  }
-  return out;
+function deriveMaskKeyHash(base, ver){
+  return sha256Bytes(utf8ToBytes("CC-MASK|" + base + "|" + ver)); // 32 bytes
+}
+function deriveIV(label, base, ver, layer1){
+  return sha256Bytes(utf8ToBytes(label + "|" + base + "|" + ver + "|" + layer1)).slice(0,12);
 }
 
+// ---- Word layer ----
 function letterToNum(ch){ return ch.charCodeAt(0)-65; }
 function numToLetter(n){ return String.fromCharCode(((n%26)+26)%26 + 65); }
 
 function pairSwap(wordAZ){
   const arr = wordAZ.split("");
-  for(let i=0;i+1<arr.length;i+=2){
-    const t=arr[i]; arr[i]=arr[i+1]; arr[i+1]=t;
-  }
+  for(let i=0;i+1<arr.length;i+=2){ const t=arr[i]; arr[i]=arr[i+1]; arr[i+1]=t; }
   return arr.join("");
 }
+
 function vigenereShift(wordAZ, keyAZ, dir){
   const out=[];
   for(let i=0;i<wordAZ.length;i++){
@@ -271,168 +327,234 @@ function vigenereShift(wordAZ, keyAZ, dir){
   }
   return out.join("");
 }
+
 function countVowels(wordAZ){
   let c=0;
   for(const ch of wordAZ) if(VOWELS.has(ch)) c++;
   return c;
 }
+
 function saltForCount(v){
   if(v<=1) return SALTS[0];
   if(v===2) return SALTS[1];
   if(v===3) return SALTS[2];
   return SALTS[3];
 }
-function stripOuterPunct(token){
-  const s=token;
-  let i=0,j=s.length-1;
-  while(i<=j && !/[A-Za-z]/.test(s[i])) i++;
-  while(j>=i && !/[A-Za-z]/.test(s[j])) j--;
-  return {lead:s.slice(0,i), core:s.slice(i,j+1), tail:s.slice(j+1)};
+
+function buildCaseTag(originalLetters){
+  // Encodes case pattern so decode can restore exact capitalization.
+  const letters = originalLetters;
+  const L = letters.length;
+  const maskBytesLen = Math.ceil(L / 8);
+  const payload = new Uint8Array(1 + maskBytesLen);
+  payload[0] = L & 255;
+
+  for (let i=0;i<L;i++){
+    const ch = letters[i];
+    const isUpper = ch === ch.toUpperCase() && ch !== ch.toLowerCase();
+    if (isUpper){
+      const byteIndex = 1 + (i >> 3);
+      const bitIndex = i & 7;
+      payload[byteIndex] |= (1 << bitIndex);
+    }
+  }
+  return "{" + bytesToB64Url(payload) + "}";
 }
-function encodeCoreWord(core, keyAZ){
-  const orig = (core||"").toUpperCase().replace(/[^A-Z]/g,"");
-  if(!orig) return core;
-  const swapped = pairSwap(orig);
+
+function parseCaseTag(core){
+  const m = core.match(/\{([A-Za-z0-9\-_]+)\}$/);
+  if (!m) return { coreNoTag: core, applyCase: null };
+
+  const payload = b64UrlToBytes(m[1]);
+  if (!payload || payload.length < 1) return { coreNoTag: core, applyCase: null };
+
+  const L = payload[0];
+  const masks = payload.slice(1);
+
+  const applyCase = (decodedAZ) => {
+    if (!decodedAZ || decodedAZ.length < L) return decodedAZ;
+    let out = "";
+    for (let i=0;i<L;i++){
+      const byteIndex = (i >> 3);
+      const bitIndex = i & 7;
+      const upper = (byteIndex < masks.length) ? ((masks[byteIndex] >> bitIndex) & 1) : 0;
+      const ch = decodedAZ[i];
+      out += upper ? ch.toUpperCase() : ch.toLowerCase();
+    }
+    if (decodedAZ.length > L) out += decodedAZ.slice(L);
+    return out;
+  };
+
+  return { coreNoTag: core.slice(0, core.length - m[0].length), applyCase };
+}
+
+function encodeCoreWord(letterRun, keyAZ){
+  const lettersOnly = (letterRun||"").replace(/[^A-Za-z]/g,"");
+  if(!lettersOnly) return letterRun;
+
+  const origAZ = lettersOnly.toUpperCase();
+  const swapped = pairSwap(origAZ);
   const shifted = vigenereShift(swapped, keyAZ, +1);
-  return shifted + saltForCount(countVowels(orig));
+  const salt = saltForCount(countVowels(origAZ));
+  const tag = buildCaseTag(lettersOnly);
+
+  return shifted + salt + tag;
 }
-function decodeCoreWord(core, keyAZ){
-  let up=(core||"").toUpperCase();
-  if(!up) return core;
-  const last=up[up.length-1];
-  if(SALTS.includes(last)) up=up.slice(0,-1);
-  const letters=up.replace(/[^A-Z]/g,"");
-  if(!letters) return core;
-  const unshift=vigenereShift(letters, keyAZ, -1);
-  return pairSwap(unshift);
+
+function decodeCoreWord(encodedCore, keyAZ){
+  let c = (encodedCore||"");
+  if(!c) return encodedCore;
+
+  const { coreNoTag, applyCase } = parseCaseTag(c);
+  c = coreNoTag;
+
+  const last = c[c.length-1];
+  if (last && SALTS.includes(last)) c = c.slice(0,-1);
+
+  const letters = c.toUpperCase().replace(/[^A-Z]/g,"");
+  if(!letters) return encodedCore;
+
+  const unshift = vigenereShift(letters, keyAZ, -1);
+  const unswap = pairSwap(unshift);
+
+  return applyCase ? applyCase(unswap) : unswap;
 }
+
+function encodeToken(token, keyAZ){
+  // Encode every contiguous A-Za-z run inside the token; keep other chars unchanged (apostrophes, dashes, etc.)
+  let out = "";
+  let i = 0;
+  while (i < token.length){
+    const ch = token[i];
+    if (/[A-Za-z]/.test(ch)){
+      let j = i;
+      while (j < token.length && /[A-Za-z]/.test(token[j])) j++;
+      const run = token.slice(i, j);
+      out += encodeCoreWord(run, keyAZ);
+      i = j;
+    } else {
+      out += ch;
+      i++;
+    }
+  }
+  return out;
+}
+
+function decodeToken(token, keyAZ){
+  // Decode segments that look like: LETTERS + optional SALT + optional {caseTag}
+  let out = "";
+  let i = 0;
+  while (i < token.length){
+    const ch = token[i];
+    if (/[A-Za-z]/.test(ch)){
+      // letters run
+      let j = i;
+      while (j < token.length && /[A-Za-z]/.test(token[j])) j++;
+
+      // optional salt
+      if (j < token.length && SALTS.includes(token[j])) j++;
+
+      // optional {caseTag}
+      if (j < token.length && token[j] === "{"){
+        const k = token.indexOf("}", j+1);
+        if (k !== -1) j = k + 1;
+      }
+
+      const core = token.slice(i, j);
+      out += decodeCoreWord(core, keyAZ);
+      i = j;
+    } else {
+      out += ch;
+      i++;
+    }
+  }
+  return out;
+}
+
 function wordEncodeMessage(text, keyAZ){
   const parts=(text||"").split(/(\s+)/);
   return parts.map(p=>{
-    if(/^\s+$/.test(p)) return p;
-    const {lead,core,tail}=stripOuterPunct(p);
-    return lead + encodeCoreWord(core,keyAZ) + tail;
+    if(/^\s+$/.test(p) || p === "") return p;
+    return encodeToken(p, keyAZ);
   }).join("");
 }
+
 function wordDecodeMessage(text, keyAZ){
   const parts=(text||"").split(/(\s+)/);
   return parts.map(p=>{
-    if(/^\s+$/.test(p)) return p;
-    const {lead,core,tail}=stripOuterPunct(p);
-    return lead + decodeCoreWord(core,keyAZ) + tail;
+    if(/^\s+$/.test(p) || p === "") return p;
+    return decodeToken(p, keyAZ);
   }).join("");
 }
 
-// 3-layer pack format:
-// SS3.<ver>.<iv1>.<iv2>.<tag>.<data>
-async function encodeAll(plain, base, ver){
-  const wordKeyAZ = await deriveWordKeyAZ(base, ver, 8);
+// ---- Masking layer (2 passes) ----
+function keystream(keyHash32, ivBytes, length, domainTag){
+  const out = new Uint8Array(length);
+  const domain = utf8ToBytes(domainTag);
+  let written=0, counter=0;
+  while(written < length){
+    const ctr = new Uint8Array(4);
+    ctr[0]=(counter>>>24)&255; ctr[1]=(counter>>>16)&255; ctr[2]=(counter>>>8)&255; ctr[3]=(counter)&255;
+    const block = sha256Bytes(concatBytes(domain, keyHash32, ivBytes, ctr));
+    const take = Math.min(block.length, length-written);
+    out.set(block.slice(0,take), written);
+    written += take;
+    counter++;
+  }
+  return out;
+}
+function xorBytes(a, b){
+  const out = new Uint8Array(a.length);
+  for(let i=0;i<a.length;i++) out[i] = a[i] ^ b[i];
+  return out;
+}
+
+function encodeAll(plain, base, ver){
+  const wordKeyAZ = deriveWordKeyAZ(base, ver, 8);
   const layer1 = wordEncodeMessage(plain, wordKeyAZ);
 
-  const keyHash = await sha256(utf8ToBytes("SS-MASK|" + base + "|" + ver));
+  const keyHash = deriveMaskKeyHash(base, ver);
   const data0 = utf8ToBytes(layer1);
 
-  // Layer 2 mask (deterministic IV for consistent output)
-  const iv1 = (await sha256(utf8ToBytes("SS-IV1|" + base + "|" + ver + "|" + plain))).slice(0,12);
-  const ks1 = await keystream(keyHash, iv1, data0.length, "SS-KS1");
-  const data1 = new Uint8Array(data0.length);
-  for(let i=0;i<data0.length;i++) data1[i]=data0[i]^ks1[i];
+  // deterministic IVs so same message => same output
+  const iv1 = deriveIV("CC-IV1", base, ver, layer1);
+  const data1 = xorBytes(data0, keystream(keyHash, iv1, data0.length, "CC-KS1"));
 
-  // Layer 3 mask (second pass, deterministic)
-  const iv2 = (await sha256(utf8ToBytes("SS-IV2|" + base + "|" + ver + "|" + plain))).slice(0,12);
-  const ks2 = await keystream(keyHash, iv2, data1.length, "SS-KS2");
-  const data2 = new Uint8Array(data1.length);
-  for(let i=0;i<data1.length;i++) data2[i]=data1[i]^ks2[i];
+  const iv2 = deriveIV("CC-IV2", base, ver, layer1);
+  const data2 = xorBytes(data1, keystream(keyHash, iv2, data1.length, "CC-KS2"));
 
-  // Integrity tag (truncated SHA-256 over ver|iv1|iv2|data2) (not a secret MAC, just tamper signal)
-  const tagBytes = await sha256(concatBytes(utf8ToBytes(ver+"|"), iv1, iv2, data2));
-  const tag = bytesToB64Url(tagBytes.slice(0,10));
+  // keyed integrity tag (wrong key/base => invalid)
+  const tagBytes = sha256Bytes(concatBytes(utf8ToBytes("CC-TAG|"), keyHash, utf8ToBytes(ver+"|"), iv1, iv2, data2)).slice(0,10);
+  const tag = bytesToB64Url(tagBytes);
 
-  return "SS3." + ver + "." + bytesToB64Url(iv1) + "." + bytesToB64Url(iv2) + "." + tag + "." + bytesToB64Url(data2);
+  return PREFIX + "." + ver + "." + bytesToB64Url(iv1) + "." + bytesToB64Url(iv2) + "." + tag + "." + bytesToB64Url(data2);
 }
 
-async function decodeAll(packed, base, selectedVer){
+function decodeAll(packed, base){
   const s=(packed||"").trim();
-  if(!s.startsWith("SS3.")) throw new Error("Bad input");
-  const parts=s.split(".");
-  // Expected: SS3.<ver>.<iv1>.<iv2>.<tag>.<data>
-  if(parts.length !== 6) throw new Error("Bad input");
-  const inVer = parts[1]; // version embedded in the text
-  lastDecodedVer = inVer;
-  const iv1=b64UrlToBytes(parts[2]);
-  const iv2=b64UrlToBytes(parts[3]);
-  const tag=parts[4];
-  const data2=b64UrlToBytes(parts[5]);
+  const parts = s.split(".");
+  if(parts.length !== 6 || parts[0] !== PREFIX) throw new Error("Invalid");
+  const ver = parts[1];
+  const iv1 = b64UrlToBytes(parts[2]);
+  const iv2 = b64UrlToBytes(parts[3]);
+  const tag = parts[4];
+  const data2 = b64UrlToBytes(parts[5]);
 
-  // Check tag (signal only)
-  const tagBytes = await sha256(concatBytes(utf8ToBytes(inVer+"|"), iv1, iv2, data2));
-  const expect = bytesToB64Url(tagBytes.slice(0,10));
-  if(expect !== tag) throw new Error("Corrupted / modified text");
+  const keyHash = deriveMaskKeyHash(base, ver);
+  const expectTag = bytesToB64Url(sha256Bytes(concatBytes(utf8ToBytes("CC-TAG|"), keyHash, utf8ToBytes(ver+"|"), iv1, iv2, data2)).slice(0,10));
+  if(expectTag !== tag) throw new Error("Invalid");
 
-  const keyHash = await sha256(utf8ToBytes("SS-MASK|" + base + "|" + inVer));
-
-  const ks2 = await keystream(keyHash, iv2, data2.length, "SS-KS2");
-  const data1 = new Uint8Array(data2.length);
-  for(let i=0;i<data2.length;i++) data1[i]=data2[i]^ks2[i];
-
-  const ks1 = await keystream(keyHash, iv1, data1.length, "SS-KS1");
-  const data0 = new Uint8Array(data1.length);
-  for(let i=0;i<data1.length;i++) data0[i]=data1[i]^ks1[i];
+  const data1 = xorBytes(data2, keystream(keyHash, iv2, data2.length, "CC-KS2"));
+  const data0 = xorBytes(data1, keystream(keyHash, iv1, data1.length, "CC-KS1"));
 
   const layer1 = bytesToUtf8(data0);
+  const wordKeyAZ = deriveWordKeyAZ(base, ver, 8);
+  const plain = wordDecodeMessage(layer1, wordKeyAZ);
 
-  const wordKeyAZ = await deriveWordKeyAZ(base, inVer, 8);
-  return wordDecodeMessage(layer1, wordKeyAZ);
+  return { plain, ver };
 }
 
-
-function hasCrypto(function hasCrypto(){
-  return !!(window.crypto && crypto.subtle && window.TextEncoder && window.TextDecoder);
-}
-
-function setCryptoStatus(){
-  const ok = hasCrypto();
-  stCrypto.textContent = ok ? "WebCrypto: available" : "WebCrypto: missing";
-  stCrypto.className = "pill " + (ok ? "ok" : "bad");
-}
-setCryptoStatus();
-
-async function refreshEncode(){
-  if(!hasCrypto()){ encOut.value=""; return; }
-  const base = normBase(baseKeyEl.value);
-  const ver = keyVerEl.value; // selected key set (used for encoding); decoding reads version from text
-  if(!base){ encOut.value=""; return; }
-  try{
-    const out = await encodeAll(encIn.value || "", base, ver);
-    encOut.value = out;
-    stInfo.textContent = "Ready";
-  }catch(e){
-    encOut.value = "";
-    stInfo.textContent = "Encode error";
-  }
-}
-
-async function refreshDecode(){
-  if(!hasCrypto()){ decOut.value=""; return; }
-  const base = normBase(baseKeyEl.value);
-  const ver = keyVerEl.value; // selected key set (used for encoding); decoding reads version from text
-  if(!base){ decOut.value=""; return; }
-  const inp = decIn.value || "";
-  if(!inp.trim()){ decOut.value=""; return; }
-  try{
-    const out = await decodeAll(inp, base, ver);
-    decOut.value = out;
-    if (lastDecodedVer && lastDecodedVer !== ver) {
-      stInfo.textContent = "Decoded with " + lastDecodedVer + " (dropdown is " + ver + ")";
-    } else {
-      stInfo.textContent = "Ready";
-    }
-  }catch(e){
-    decOut.value = "";
-    stInfo.textContent = (e && e.message) ? e.message : "Decode error";
-  }
-}
-
+// ---- UI ----
 async function copyText(el){
   const t = el.value || "";
   if(!t) return;
@@ -446,21 +568,62 @@ async function copyText(el){
 
 $("copyEnc").addEventListener("click", ()=>copyText(encOut));
 $("copyDec").addEventListener("click", ()=>copyText(decOut));
-$("clearEnc").addEventListener("click", ()=>{ encIn.value=""; encOut.value=""; refreshEncode(); });
-$("clearDec").addEventListener("click", ()=>{ decIn.value=""; decOut.value=""; refreshDecode(); });
+$("clearEnc").addEventListener("click", ()=>{ encIn.value=""; encOut.value=""; encStatus.textContent="—"; encStatus.className="pill"; });
+$("clearDec").addEventListener("click", ()=>{ decIn.value=""; decOut.value=""; decStatus.textContent="—"; decStatus.className="pill"; });
 
-let encTimer=null, decTimer=null;
-function debounce(fn, which){
-  if(which==="enc"){ clearTimeout(encTimer); encTimer=setTimeout(fn, 120); }
-  else { clearTimeout(decTimer); decTimer=setTimeout(fn, 120); }
+let encSeq=0, decSeq=0;
+function refreshEncode(){
+  const seq = ++encSeq;
+  const base = normBaseKey(baseKeyEl.value);
+  const ver = keyVerEl.value;
+  const input = encIn.value || "";
+  if(!base || !input){ encOut.value=""; encStatus.textContent="—"; encStatus.className="pill"; return; }
+  try{
+    const out = encodeAll(input, base, ver);
+    if(seq !== encSeq) return;
+    encOut.value = out;
+    encStatus.textContent = "OK (" + ver + ")";
+    encStatus.className = "pill ok";
+  }catch(e){
+    if(seq !== encSeq) return;
+    encOut.value = "";
+    encStatus.textContent = "Invalid";
+    encStatus.className = "pill bad";
+  }
 }
+function refreshDecode(){
+  const seq = ++decSeq;
+  const base = normBaseKey(baseKeyEl.value);
+  const input = decIn.value || "";
+  if(!base || !input.trim()){ decOut.value=""; decStatus.textContent="—"; decStatus.className="pill"; return; }
+  try{
+    const res = decodeAll(input, base);
+    if(seq !== decSeq) return;
+    decOut.value = res.plain;
+    decStatus.textContent = "OK (" + res.ver + ")";
+    decStatus.className = "pill ok";
+  }catch(e){
+    if(seq !== decSeq) return;
+    decOut.value = "";
+    decStatus.textContent = "Invalid";
+    decStatus.className = "pill bad";
+  }
+}
+function debounce(fn){
+  let t=null;
+  return ()=>{ clearTimeout(t); t=setTimeout(fn, 120); };
+}
+const debEnc = debounce(refreshEncode);
+const debDec = debounce(refreshDecode);
 
-encIn.addEventListener("input", ()=>debounce(refreshEncode,"enc"));
-decIn.addEventListener("input", ()=>debounce(refreshDecode,"dec"));
-baseKeyEl.addEventListener("input", ()=>{ debounce(refreshEncode,"enc"); debounce(refreshDecode,"dec"); });
-keyVerEl.addEventListener("change", ()=>{ refreshEncode(); refreshDecode(); });
+encIn.addEventListener("input", debEnc);
+decIn.addEventListener("input", debDec);
+baseKeyEl.addEventListener("input", ()=>{ debEnc(); debDec(); });
+keyVerEl.addEventListener("change", refreshEncode);
 
+// initial
 refreshEncode();
+refreshDecode();
 </script>
 </body>
 </html>
